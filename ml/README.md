@@ -29,6 +29,16 @@ python -m pip install -r requirements.txt
 python -m nltk.downloader stopwords punkt punkt_tab
 uvicorn main:app --reload
 ```
+Step 1: Install Uvicorn and FastAPI
+Run this in your backend terminal:
+
+python -m pip install fastapi uvicorn
+
+
+Step 2: Start your FastAPI server
+
+python -m uvicorn main:app --reload
+
 
 The API runs at `http://127.0.0.1:8000`. Interactive documentation is at `http://127.0.0.1:8000/docs`.
 
