@@ -2,7 +2,5 @@ __pycache__/
 *.py[cod]
 .venv/
 .env
-data/*.csv
-models/*.pkl
 !models/.gitkeep
 .ipynb_checkpoints/
