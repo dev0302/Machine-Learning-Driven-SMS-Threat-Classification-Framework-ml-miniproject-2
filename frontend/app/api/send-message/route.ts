@@ -1,5 +1,6 @@
 import { messageSchema } from "@/app/schemas/messageSchema";
 import { NextRequest, NextResponse } from "next/server";
+import { log } from "util";
 
 export async function POST(req: NextRequest){
 
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest){
         // 5. Handle unsuccessful ML responses
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
+            console.log(response);
+            
 
             return NextResponse.json(
                 {
