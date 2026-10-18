@@ -35,8 +35,13 @@ export async function POST(req: NextRequest){
 
         // 5. Handle unsuccessful ML responses
         if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+
             return NextResponse.json(
-                { error: "Failed to analyze the message." },
+                {
+                    error: "Failed to analyze the message.",
+                    details: errorData?.detail || errorData || "Unknown ML API error",
+                },
                 { status: 502 }
             );
         }
