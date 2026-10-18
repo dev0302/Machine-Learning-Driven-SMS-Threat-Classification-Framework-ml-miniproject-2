@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
-import { ArrowUp, CircleDollarSign, Link2, Loader2, Mail, Megaphone, Phone, RotateCcw , SendHorizonal, ShieldAlert, ShieldCheck } from "lucide-react";
+import { ArrowUp, CircleArrowRight, CircleDollarSign, Link2, Loader2, Mail, Megaphone, Phone, RotateCcw , SendHorizonal, ShieldAlert, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
+import Link from "next/link";
 
 /* ---------- types ---------- */
 
@@ -197,14 +198,28 @@ export default function Page() {
 
       {/* header */}
       <header className="flex flex-col items-center gap-3 text-center">
-       <Image
+       
+       <a
+        href="https://devmalik-portfolio.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group relative inline-flex"
+      >
+        <Image
           src="/sms_threact_icon_macc.png"
           alt="ScamLens"
           width={72}
           height={72}
           priority
-          className="h-[72px] w-[72px] drop-shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
+          className="h-[72px] w-[72px] cursor-pointer drop-shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
         />
+
+        <span className="absolute -right-32 top-6 z-50 -translate-y-full whitespace-nowrap rounded-lg bg-i-black3 i-fonts px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100">
+          View my portfolio ↗
+        </span>
+      </a>
+       
+
         <h1 className="text-4xl font-semibold tracking-tight text-[#f5f5f7e4]">
           SMS Threat Intelligence and Classification Framework
         </h1>
@@ -490,11 +505,26 @@ export default function Page() {
           </section>
 
           <p className="mx-auto max-w-md text-center text-xs leading-relaxed text-white/30">
-            Results depend
-            on the training data, so a message marked legitimate isn&apos;t
-            automatically safe.
+            Results depend on the training data, so a message marked legitimate isn&apos;t automatically safe.
           </p>
+
+           <div className="flex items-center gap-4 mx-auto">
+          <Link
+            href="/ml-info"
+             className={` w-full h-10 px-4 flex items-center gap-2
+              rounded-xl border text-[13px] font-medium cursor-pointer 
+              transition-all duration-300 ease-out
+              disabled:cursor-not-allowed bg-i-blue-button2
+              active:scale-[0.96] hover:text-white/90  
+              }`} >
+            See the ml pipeline behind it
+            <CircleArrowRight className="h-4.5 w-4.5" />
+          </Link>
         </div>
+
+        </div>
+
+        
       )}
     </main>
   );

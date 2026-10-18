@@ -276,10 +276,10 @@ export default function MlPipelinePage() {
         </Link>
 
         <h1 className="text-4xl font-semibold tracking-tight text-center text-[#f5f5f7e4]">
-          How ScamLens works
+          How SMS Threat Analyzer works
         </h1>
         <p className="w-8/12 text-center mx-auto text-[15px] leading-relaxed text-white/50">
-          ScamLens classifies an SMS as Ham, Smishing or Spam. The model is
+          SMS Threat Analyzer classifies an SMS as Ham, Smishing or Spam. The model is
           trained once in a Jupyter notebook and saved. Every prediction after
           that uses the saved model through an API. Nothing is retrained when
           you submit a message.
