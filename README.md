@@ -36,19 +36,19 @@ ScamLens is a full-stack SMS classification project. A user submits a message in
 
 ```mermaid
 flowchart LR
-    U[User enters SMS] --> UI[Next.js client<br/>frontend/app/page.tsx]
-    UI --> H[Next.js health proxy<br/>GET /api/health]
-    H -->|GET /health| API[FastAPI<br/>ml/backend/main.py]
-    UI -->|POST /api/send-message<br/>{ text }| NR[Next.js route handler]
-    NR -->|Validate with Zod<br/>POST /predict| API
-    API --> PRE[transform_text<br/>clean and stem]
-    PRE --> PIPE[Saved scikit-learn pipeline<br/>TF-IDF + Logistic Regression]
-    API --> FEAT[extract_features<br/>original message indicators]
-    PIPE --> OUT[Prediction + probabilities]
+    U["User enters SMS"] --> UI["Next.js client: frontend/app/page.tsx"]
+    UI --> H["Next.js health proxy: GET /api/health"]
+    H -->|"GET /health"| API["FastAPI: ml/backend/main.py"]
+    UI -->|"POST /api/send-message with JSON text"| NR["Next.js route handler"]
+    NR -->|"Zod validation, then POST /predict"| API
+    API --> PRE["transform_text: clean and stem"]
+    PRE --> PIPE["Saved scikit-learn pipeline: TF-IDF and Logistic Regression"]
+    API --> FEAT["extract_features: original-message indicators"]
+    PIPE --> OUT["Prediction and probabilities"]
     FEAT --> OUT
-    OUT -->|JSON response| NR
+    OUT -->|"JSON response"| NR
     NR --> UI
-    UI --> R[Verdict, scores, and indicators]
+    UI --> R["Verdict, scores, and indicators"]
 ```
 
 The important boundary is between the browser and the ML service: the browser calls **same-origin Next.js routes**, not FastAPI directly. This keeps the ML service URL in the Next.js server environment and avoids requiring browser-side CORS access for normal application requests.
