@@ -1,8 +1,13 @@
 """Text preprocessing shared by notebook-trained ScamLens model and API."""
 
+import os
 import re
 
 import nltk
+
+NLTK_DATA_PATH = os.path.join(os.path.dirname(__file__), "nltk_data")
+nltk.data.path.insert(0, NLTK_DATA_PATH)
+
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
