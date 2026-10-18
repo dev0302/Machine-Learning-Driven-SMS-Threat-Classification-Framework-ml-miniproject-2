@@ -25,15 +25,16 @@ NUMBER_PATTERN = re.compile(r"\b\d+\b")
 _STEMMER = PorterStemmer()
 
 
+from functools import lru_cache
+
+@lru_cache(maxsize=1)
 def _get_stop_words() -> set[str]:
-    """Load the same English stop-word set used during notebook training."""
     try:
         words = set(stopwords.words("english"))
-    except LookupError as exc:
-        raise RuntimeError(
-            f"NLTK stopwords are missing. "
-            f"NLTK search paths: {nltk.data.path}"
-        ) from exc
+    except LookupError:
+        os.makedirs(NLTK_DATA_PATH, exist_ok=True)
+        nltk.download("stopwords", download_dir=NLTK_DATA_PATH, quiet=True)
+        words = set(stopwords.words("english"))
     return words - KEEP_WORDS
 
 
