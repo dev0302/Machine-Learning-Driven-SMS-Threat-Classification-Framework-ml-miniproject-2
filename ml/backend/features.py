@@ -5,6 +5,10 @@ import re
 
 import nltk
 
+from nltk.tokenize import TreebankWordTokenizer
+
+_TOKENIZER = TreebankWordTokenizer()
+
 NLTK_DATA_PATH = os.path.join(os.path.dirname(__file__), "nltk_data")
 nltk.data.path.insert(0, NLTK_DATA_PATH)
 
@@ -43,13 +47,7 @@ def transform_text(text: str) -> str:
     text = PHONE_PATTERN.sub(" phonetoken ", text)
     text = NUMBER_PATTERN.sub(" numtoken ", text)
 
-    try:
-        words = nltk.word_tokenize(text)
-    except LookupError as exc:
-        raise RuntimeError(
-            "NLTK tokenizer data is missing. Run: "
-            "python -m nltk.downloader stopwords punkt punkt_tab"
-        ) from exc
+    words = _TOKENIZER.tokenize(text)
 
     words = [word for word in words if word.isalnum()]
     stop_words = _get_stop_words()
