@@ -31,8 +31,8 @@ def _get_stop_words() -> set[str]:
         words = set(stopwords.words("english"))
     except LookupError as exc:
         raise RuntimeError(
-            "NLTK stopwords are missing. Run: "
-            "python -m nltk.downloader stopwords punkt punkt_tab"
+            f"NLTK stopwords are missing. "
+            f"NLTK search paths: {nltk.data.path}"
         ) from exc
     return words - KEEP_WORDS
 
