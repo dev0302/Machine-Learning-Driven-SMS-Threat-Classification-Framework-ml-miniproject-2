@@ -1,4 +1,4 @@
-# ScamLens — SMS Threat Classification Framework
+# ScamLens - SMS Threat Classification Framework
 
 **Deployed application:** [https://ml-mini-project-2-nextjs.vercel.app](https://ml-mini-project-2-nextjs.vercel.app)  
 **Architecture diagram:** [https://excalidraw.com/#json=z85JnmCwfNKHz9fZFp6gA,irGF1_pTKc8TR_eIvYgSaQ](https://excalidraw.com/#json=z85JnmCwfNKHz9fZFp6gA,irGF1_pTKc8TR_eIvYgSaQ)  
