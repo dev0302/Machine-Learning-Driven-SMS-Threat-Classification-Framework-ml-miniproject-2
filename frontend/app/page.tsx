@@ -20,6 +20,9 @@ interface Prediction {
   features: Record<string, number>;
 }
 
+// what the button is doing right now
+type Phase = "idle" | "checking" | "waking" | "analyzing";
+
 /* ---------- static content ---------- */
 
 const LABEL_ORDER: Label[] = ["ham", "smishing", "spam"];
@@ -110,6 +113,54 @@ function confidenceWord(c: number) {
   return "Low confidence";
 }
 
+/* ---------- server wake-up ---------- */
+
+// render free instances sleep after ~15 min idle, so treat 10 min as "still warm"
+const WARM_WINDOW_MS = 10 * 60 * 1000;
+
+// give up if the server has not woken up in this time
+const WAKE_TIMEOUT_MS = 60 * 1000;
+
+// text shown inside the button for each phase
+function phaseLabel(phase: Phase, elapsed: number) {
+  switch (phase) {
+    case "checking":
+      return "Connecting…";
+    case "waking":
+      return `Waking up server… ${elapsed}s`;
+    case "analyzing":
+      return "Analyzing message…";
+    default:
+      return "Analyze message";
+  }
+}
+
+// polls /api/health until the backend answers
+async function waitForServer(onWaking: () => void) {
+  const start = Date.now();
+
+  // 1. if the first answer is slow (1.5s), the server was probably asleep
+  const wakingTimer = setTimeout(onWaking, 1500);
+
+  try {
+    // 2. keep asking every 2s until it answers or we give up
+    while (Date.now() - start < WAKE_TIMEOUT_MS) {
+      try {
+        const res = await axios.get("/api/health", { timeout: 10 * 1000 });
+        if (res.data?.status === "ok") return true;
+      } catch {
+        // 503 or timeout, backend is still starting
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
+    // 3. never answered in time
+    return false;
+  } finally {
+    clearTimeout(wakingTimer);
+  }
+}
+
 const card =
   "rounded-3xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl";
 
@@ -124,6 +175,13 @@ export default function Page() {
   const [analyzedText, setAnalyzedText] = useState("");
   const [barsReady, setBarsReady] = useState(false);
 
+  // button phase + seconds counter while waking
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [elapsed, setElapsed] = useState(0);
+
+  // last time the backend answered, 0 = never
+  const lastOkAt = useRef(0);
+
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -131,6 +189,27 @@ export default function Page() {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [result]);
+
+  // start waking the backend as soon as the page opens
+  useEffect(() => {
+    axios
+      .get("/api/health", { timeout: 10 * 1000 })
+      .then(() => {
+        lastOkAt.current = Date.now();
+      })
+      .catch(() => {});
+  }, []);
+
+  // count seconds while waking
+  useEffect(() => {
+    if (phase !== "waking") {
+      setElapsed(0);
+      return;
+    }
+
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [phase]);
 
   async function onSend() {
     if (!content.trim()) {
@@ -145,11 +224,54 @@ export default function Page() {
       setIsSubmitting(true);
       setBarsReady(false);
 
-      const response = await axios.post<Prediction>("/api/send-message", {
-        text: content,
-      });
+      // wake the backend first if it may be asleep
+      if (Date.now() - lastOkAt.current > WARM_WINDOW_MS) {
+        setPhase("checking");
 
-      setResult(response.data);
+        const awake = await waitForServer(() => setPhase("waking"));
+
+        if (!awake) {
+          const message = "The server took too long to start. Please try again.";
+          toast.error(message);
+          setErrorMessage(message);
+          return;
+        }
+
+        lastOkAt.current = Date.now();
+      }
+
+      setPhase("analyzing");
+
+      let data: Prediction;
+
+      try {
+        const response = await axios.post<Prediction>("/api/send-message", {
+          text: content,
+        });
+        data = response.data;
+      } catch (error) {
+        // backend may have gone down since the last good request (we skipped the check)
+        const serverDown =
+          axios.isAxiosError(error) &&
+          (!error.response || error.response.status >= 500);
+
+        if (!serverDown) throw error;
+
+        // wake it up and try one more time
+        setPhase("checking");
+        const awake = await waitForServer(() => setPhase("waking"));
+        if (!awake) throw error;
+
+        setPhase("analyzing");
+        const retry = await axios.post<Prediction>("/api/send-message", {
+          text: content,
+        });
+        data = retry.data;
+      }
+
+      lastOkAt.current = Date.now();
+
+      setResult(data);
       setAnalyzedText(content.trim());
 
       // let the bars mount at 0%, then animate to their value
@@ -169,6 +291,7 @@ export default function Page() {
       }
     } finally {
       setIsSubmitting(false);
+      setPhase("idle");
     }
   }
 
@@ -252,8 +375,12 @@ export default function Page() {
           />
 
           <div className="mt-2 flex items-center justify-between gap-3">
-            <span className="text-xs tabular-nums text-white/30">
-              {content.length > 0 ? `${content.length} characters` : "Click Enter to analyze"}
+            <span className="min-w-0 text-xs text-white/30">
+              {phase === "waking"
+                ? "The server was asleep. The first request can take up to 30 seconds."
+                : content.length > 0
+                  ? `${content.length} characters`
+                  : "Click Enter to analyze"}
             </span>
 
             <button
@@ -275,7 +402,7 @@ export default function Page() {
               ) : (
                 <SendHorizonal className="h-4 w-4" strokeWidth={2.5} />
               )}
-              {isSubmitting ? "Analyzing…" : "Analyze message"}
+              {isSubmitting ? phaseLabel(phase, elapsed) : "Analyze message"}
             </button>
           </div>
         </div>
