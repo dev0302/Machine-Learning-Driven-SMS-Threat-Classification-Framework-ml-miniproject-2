@@ -43,7 +43,7 @@ export async function POST(req: NextRequest){
             return NextResponse.json(
                 {
                     error: "Failed to analyze the message.",
-                    details: errorData?.detail || errorData || "Unknown ML API error",
+                    details: errorData?.detail || errorData || response || "Unknown ML API error",
                 },
                 { status: 502 }
             );
